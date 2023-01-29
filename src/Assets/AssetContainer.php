@@ -327,7 +327,7 @@ class AssetContainer implements AssetContainerContract, Augmentable, ArrayAccess
             $recursive = true;
         }
 
-        return $this->contents()->filteredDirectoriesIn($folder, $recursive)->keys();
+        return $this->contents($folder)->filteredDirectoriesIn($folder, $recursive)->keys();
     }
 
     /**
