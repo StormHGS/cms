@@ -19,16 +19,16 @@ class AssetContainerContents
         $this->container = $container;
     }
 
-    public function all()
+    public function all($path = '/')
     {
         if ($this->files && ! Statamic::isWorker()) {
             return $this->files;
         }
 
-        return $this->files = Cache::remember($this->key(), $this->ttl(), function () {
+        return $this->files = Cache::remember($this->key(), $this->ttl(), function () use ($path) {
             // Use Flysystem directly because it gives us type, timestamps, dirname
             // and will let us perform more efficient filtering and caching.
-            $files = $this->filesystem()->listContents('/', true);
+            $files = $this->filesystem()->listContents($path, true);
 
             if (! is_array($files)) {
                 // Flysystem v3 is a DirectoryListing class, not an array.
@@ -153,14 +153,14 @@ class AssetContainerContents
         return Cache::get($this->key());
     }
 
-    public function files()
+    public function files($path = '/')
     {
-        return $this->all()->where('type', 'file');
+        return $this->all($path)->where('type', 'file');
     }
 
-    public function directories()
+    public function directories($path = '/')
     {
-        return $this->all()->where('type', 'dir');
+        return $this->all($path)->where('type', 'dir');
     }
 
     public function metaFilesIn($folder, $recursive)
@@ -169,7 +169,7 @@ class AssetContainerContents
             return $this->metaFiles[$key];
         }
 
-        $files = $this->files();
+        $files = $this->files($folder);
 
         $files = $files->filter(function ($file, $path) {
             return Str::startsWith($path, '.meta/')
@@ -199,7 +199,7 @@ class AssetContainerContents
             return $this->filteredFiles[$key];
         }
 
-        $files = $this->files();
+        $files = $this->files($folder);
 
         // Filter by folder and recursiveness. But don't bother if we're
         // requesting the root recursively as it's already that way.
